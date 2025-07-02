@@ -4,8 +4,10 @@ import com.example.Shava.data.Ingredient;
 import com.example.Shava.data.Ingredient.Type;
 import com.example.Shava.data.Shava;
 import com.example.Shava.data.ShavaOrder;
+import com.example.Shava.repo.IngeidientRepository;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import com.example.Shava.exception.ResourceNotFoundException;
@@ -14,7 +16,6 @@ import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -23,36 +24,32 @@ import java.util.stream.Collectors;
 @RequestMapping("/design")
 @SessionAttributes("order")
 public class DesignShavaController {
+    private final IngeidientRepository ingredientRepository;
+
+    @Autowired
+    public DesignShavaController(IngeidientRepository ingredientRepository) {
+        this.ingredientRepository = ingredientRepository;
+    }
+
     @ModelAttribute
-    public void addIngridientsToModel(Model model){
-        List<Ingredient> ingredients = Arrays.asList(
-                new Ingredient("FLTO", "Flour Tortilla", Ingredient.Type.WRAP),
-                new Ingredient("COTO", "Corn Tortilla", Ingredient.Type.WRAP),
-                new Ingredient("GRBF", "Ground Beef", Ingredient.Type.PROTEIN),
-                new Ingredient("CARN", "Carnitas", Ingredient.Type.PROTEIN),
-                new Ingredient("TMTO", "Diced Tomatoes", Ingredient.Type.VEGGIES),
-                new Ingredient("LETC", "Lettuce", Ingredient.Type.VEGGIES),
-                new Ingredient("CHED", "Cheddar", Ingredient.Type.CHEESE),
-                new Ingredient("JACK", "Monterrey Jack", Ingredient.Type.CHEESE),
-                new Ingredient("SLSA", "Salsa", Ingredient.Type.SAUCE),
-                new Ingredient("SRCR", "Sour Cream", Ingredient.Type.SAUCE)
-        );
+    public void addIngridientsToModel(Model model) {
+        Iterable<Ingredient> ingredients = ingredientRepository.findAll();
 
         Type[] types = Ingredient.Type.values();
-        for (Type type: types){
+        for (Type type : types) {
             model.addAttribute(type.toString().toLowerCase(),
-                    filterByType(ingredients, type));
+                    filterByType((List<Ingredient>) ingredients, type));
         }
     }
 
-    private Iterable<Ingredient> filterByType(List<Ingredient> ingredientList, Type type){
+    private Iterable<Ingredient> filterByType(List<Ingredient> ingredientList, Type type) {
         return ingredientList.stream()
                 .filter(x -> x.getType().equals(type))
                 .collect(Collectors.toList());
     }
 
     @GetMapping
-    public String showDesignForm(){
+    public String showDesignForm() {
         // Example of throwing ResourceNotFoundException
         // In a real application, this would be based on some condition
         // For demonstration, let's say if a specific parameter is missing or invalid
@@ -63,8 +60,8 @@ public class DesignShavaController {
     }
 
     @PostMapping
-    public String processShava(@Valid Shava shava, Errors errors, @ModelAttribute ShavaOrder shavaOrder){
-        if (errors.hasErrors()){
+    public String processShava(@Valid Shava shava, Errors errors, @ModelAttribute ShavaOrder shavaOrder) {
+        if (errors.hasErrors()) {
             return "design";
         }
         shavaOrder.addShava(shava);
@@ -73,12 +70,12 @@ public class DesignShavaController {
     }
 
     @ModelAttribute(name = "order")
-    public ShavaOrder order(){
+    public ShavaOrder order() {
         return new ShavaOrder();
     }
 
     @ModelAttribute(name = "shava")
-    public Shava shava(){
+    public Shava shava() {
         return new Shava();
     }
 

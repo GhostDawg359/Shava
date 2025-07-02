@@ -6,11 +6,18 @@ import jakarta.validation.constraints.Pattern;
 import lombok.Data;
 import org.hibernate.validator.constraints.CreditCardNumber;
 
+import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 @Data
-public class ShavaOrder {
+public class ShavaOrder implements Serializable {
+    private static final long serialVersionUID = 1L;
+    private long id;
+    private Date createdAt = new Date();
+    @NotBlank(message = "is required")
+    private String name;
     @NotBlank(message = "is required")
     private String deliveryName;
     @NotBlank(message = "is required")
